@@ -1,0 +1,14 @@
+{
+	"short_name": "Task Manager",
+	"name": "Task Manager",
+	"start_url": "/",
+	"icons": [
+		{
+		  "src": "/favicon.png",
+		  "sizes": "460x460",
+		  "type": "image/png"
+		}
+	  ],
+	"display": "standalone",
+	"theme_color": "black"
+  }

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta
+			name="description"
+			content="A simple task manager that allows you to add people and tasks with due dates."
+		/>
+		<meta
+			name="keywords"
+			content="task manager, task, manager, people, due date, due, date, time"
+		/>
+		<meta name="author" content="oSumAtrIX" />
+		<title>Task Manager</title>
+		<link rel="manifest" href="manifest.webmanifest" />
+		<meta name="theme-color" content="#000000" />
+		<link rel="icon" href="/favicon.ico" />
+		<style>
+			/* Body Styles */
+			body {
+				font-family: Arial, sans-serif;
+				background-color: #f5f5f5;
+				margin: 0;
+				padding: 20px;
+				display: flex;
+				justify-content: center;
+				flex-direction: column;
+				align-items: center;
+				word-break: break-word;
+				gap: 1rem;
+			}
+
+			/* Person Card Styles */
+			.person-card {
+				background-color: white;
+				border-radius: 10px;
+				box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+				padding: 20px;
+				min-width: 700px;
+			}
+
+			/* Person Header Styles */
+			.person-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				min-height: 50px;
+			}
+
+			/* Person Name Styles */
+			.person-name {
+				font-size: 20px;
+				font-weight: bold;
+				cursor: pointer;
+				padding: 0.5rem;
+			}
+
+			/* Person Description Styles */
+			.person-description {
+				color: #888;
+				margin-bottom: 1rem;
+				padding: 0.5rem;
+			}
+
+			/* Task List Styles */
+			.task-list {
+				padding-left: 0;
+				list-style-type: none;
+				margin: 0;
+			}
+
+			/* Task Item Styles */
+			.task-item {
+				margin: 1rem 0;
+				background-color: #f9f9f9;
+				padding: 10px;
+				border-radius: 5px;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				min-height: 50px;
+			}
+
+			/* Task Name Styles */
+			.task-name {
+				font-size: 16px;
+				padding: 0.5rem;
+			}
+
+			/* Due Time Styles */
+			.due-time {
+				display: none;
+			}
+
+			.task-time:hover .due-time,
+			.person-time:hover .due-time {
+				display: inline-block;
+			}
+
+			/* Form Styles */
+			.add-task-form,
+			.add-person-form {
+				display: flex;
+				justify-content: space-between;
+			}
+
+			/* Add Task Form Styles */
+			.add-task-form {
+				justify-content: flex-end;
+				display: none;
+			}
+
+			/* Person Card Hover Effects */
+			.person-card:hover .add-task-form {
+				display: flex;
+			}
+
+			/* Input and Button Styles */
+			input,
+			button {
+				padding: 10px;
+				font-size: 14px;
+				border-radius: 5px;
+				margin: 0.3rem;
+				border: 1px solid #ddd;
+			}
+
+			/* Add Task and Person Form Button Styles */
+			.add-task-form button,
+			.add-person-form button {
+				background-color: #007bff;
+				color: white;
+				border: none;
+				cursor: pointer;
+			}
+
+			/* Media Queries */
+			@media (max-width: 800px) {
+				.add-task-form,
+				.add-person-form {
+					width: 100%;
+					flex-direction: column;
+				}
+				input,
+				button {
+					margin: 0.5rem;
+				}
+				.person-card {
+					min-width: 90%;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<script>
+			const people = JSON.parse(localStorage.getItem("people")) || [];
+
+			function saveData() {
+				localStorage.setItem("people", JSON.stringify(people));
+			}
+
+			function selectAll(e) {
+				const range = document.createRange();
+				range.selectNodeContents(e.target);
+				const selection = window.getSelection();
+				selection.removeAllRanges();
+				selection.addRange(range);
+			}
+
+			function renderPeople() {
+				const body = document.body;
+				body.innerHTML = "<h1>Task Manager</h1>";
+
+				const addPersonForm = document.createElement("form");
+				addPersonForm.className = "add-person-form";
+
+				const personNameInput = document.createElement("input");
+				personNameInput.type = "text";
+				personNameInput.placeholder = "Name";
+				personNameInput.required = true;
+
+				const personDescriptionInput = document.createElement("input");
+				personDescriptionInput.type = "text";
+				personDescriptionInput.placeholder = "Description";
+				personDescriptionInput.required = false;
+
+				const personDueDatetimeInput = document.createElement("input");
+				personDueDatetimeInput.type = "datetime-local";
+				personDueDatetimeInput.required = true;
+
+				const addPersonButton = document.createElement("button");
+				addPersonButton.type = "submit";
+				addPersonButton.innerText = "Add person";
+
+				addPersonForm.appendChild(personNameInput);
+				addPersonForm.appendChild(personDescriptionInput);
+				addPersonForm.appendChild(personDueDatetimeInput);
+				addPersonForm.appendChild(addPersonButton);
+
+				addPersonForm.addEventListener("submit", (e) => {
+					e.preventDefault();
+					const newPerson = {
+						name: personNameInput.value,
+						description: personDescriptionInput.value,
+						dueDatetime: personDueDatetimeInput.value,
+						tasks: [],
+					};
+					people.push(newPerson);
+					saveData();
+					renderPeople();
+				});
+
+				body.appendChild(addPersonForm);
+
+				people.sort(
+					(a, b) => new Date(a.dueDatetime) - new Date(b.dueDatetime)
+				);
+				people.forEach((person, personIndex) => {
+					const personCard = document.createElement("div");
+					personCard.className = "person-card";
+
+					const personHeader = document.createElement("div");
+					personHeader.className = "person-header";
+
+					const personName = document.createElement("div");
+					personName.className = "person-name";
+					personName.contentEditable = true;
+					personName.innerText = person.name;
+					personName.addEventListener("focus", selectAll);
+
+					personName.addEventListener("blur", () => {
+						person.name = personName.innerText;
+
+						if (person.name === "") {
+							people.splice(personIndex, 1);
+							saveData();
+							renderPeople();
+						} else saveData();
+					});
+
+					const personTime = document.createElement("div");
+					personTime.className = "person-time";
+
+					const personRemainingTime = document.createElement("span");
+					personRemainingTime.required = true;
+					calculateRemainingTime(personRemainingTime, person.dueDatetime);
+
+					const personDueTime = document.createElement("input");
+					personDueTime.className = "due-time";
+					personDueTime.type = "datetime-local";
+					personDueTime.value = person.dueDatetime;
+					personDueTime.addEventListener("change", () => {
+						person.dueDatetime = personDueTime.value;
+						saveData();
+						renderPeople();
+					});
+
+					personTime.appendChild(personDueTime);
+					personTime.appendChild(personRemainingTime);
+
+					personHeader.appendChild(personName);
+					personHeader.appendChild(personTime);
+
+					const personDescription = document.createElement("div");
+					personDescription.className = "person-description";
+					personDescription.contentEditable = true;
+					personDescription.innerText = person.description || "";
+					personDescription.addEventListener("focus", selectAll);
+					personDescription.addEventListener("blur", () => {
+						person.description = personDescription.innerText;
+						saveData();
+					});
+
+					const taskList = document.createElement("ul");
+					taskList.className = "task-list";
+
+					person.tasks.sort(
+						(a, b) => new Date(a.dueDatetime) - new Date(b.dueDatetime)
+					);
+					person.tasks.forEach((task, taskIndex) => {
+						const taskItem = document.createElement("li");
+						taskItem.className = "task-item";
+
+						const taskName = document.createElement("span");
+						taskName.className = "task-name";
+						taskName.contentEditable = true;
+						taskName.innerText = task.name;
+						taskName.addEventListener("focus", selectAll);
+						taskName.addEventListener("blur", () => {
+							task.name = taskName.innerText;
+							if (task.name === "") {
+								person.tasks.splice(taskIndex, 1);
+								saveData();
+								renderPeople();
+							} else saveData();
+						});
+
+						const taskTime = document.createElement("div");
+						taskTime.className = "task-time";
+
+						const taskRemainingTime = document.createElement("span");
+						taskRemainingTime.required = true;
+						calculateRemainingTime(taskRemainingTime, task.dueDatetime);
+
+						const taskDueTime = document.createElement("input");
+						taskDueTime.className = "due-time";
+						taskDueTime.type = "datetime-local";
+						taskDueTime.value = task.dueDatetime;
+						taskDueTime.addEventListener("change", () => {
+							task.dueDatetime = taskDueTime.value;
+							saveData();
+							renderPeople();
+						});
+
+						taskTime.appendChild(taskDueTime);
+						taskTime.appendChild(taskRemainingTime);
+
+						taskItem.appendChild(taskName);
+						taskItem.appendChild(taskTime);
+						taskList.appendChild(taskItem);
+					});
+
+					const addTaskForm = document.createElement("form");
+					addTaskForm.className = "add-task-form";
+
+					const taskNameInput = document.createElement("input");
+					taskNameInput.type = "text";
+					taskNameInput.placeholder = "Task name";
+					taskNameInput.required = true;
+
+					const taskDueDatetimeInput = document.createElement("input");
+					taskDueDatetimeInput.type = "datetime-local";
+					taskDueDatetimeInput.required = true;
+
+					const addButton = document.createElement("button");
+					addButton.type = "submit";
+					addButton.innerText = "Add task";
+
+					addTaskForm.appendChild(taskNameInput);
+					addTaskForm.appendChild(taskDueDatetimeInput);
+					addTaskForm.appendChild(addButton);
+
+					addTaskForm.addEventListener("submit", (e) => {
+						e.preventDefault();
+						const newTask = {
+							name: taskNameInput.value,
+							dueDatetime: taskDueDatetimeInput.value,
+							tasks: [],
+						};
+						person.tasks.push(newTask);
+						saveData();
+						renderPeople();
+					});
+
+					personCard.appendChild(personHeader);
+					personCard.appendChild(personDescription);
+					personCard.appendChild(taskList);
+					personCard.appendChild(addTaskForm);
+
+					body.appendChild(personCard);
+				});
+			}
+
+			function calculateRemainingTime(element, dueDatetime) {
+				function updateTime() {
+					const now = new Date();
+					const due = new Date(dueDatetime);
+					const elapsedTime = now - due;
+
+					if (elapsedTime >= 0) {
+						// Show elapsed time
+						const days = Math.floor(elapsedTime / (1000 * 60 * 60 * 24));
+						const hours = Math.floor(
+							(elapsedTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+						);
+						const minutes = Math.floor(
+							(elapsedTime % (1000 * 60 * 60)) / (1000 * 60)
+						);
+						const seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
+
+						element.textContent = `${days} days, ${String(hours).padStart(
+							2,
+							"0"
+						)}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+							2,
+							"0"
+						)}`;
+						element.style.color = "#ff4242";
+					} else {
+						const remainingTime = due - now;
+						const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
+						const hours = Math.floor(
+							(remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+						);
+						const minutes = Math.floor(
+							(remainingTime % (1000 * 60 * 60)) / (1000 * 60)
+						);
+						const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+
+						element.textContent = `${days} days, ${String(hours).padStart(
+							2,
+							"0"
+						)}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+							2,
+							"0"
+						)}`;
+						element.style.color = "";
+					}
+				}
+
+				updateTime();
+				setInterval(updateTime, 1000);
+			}
+
+			renderPeople();
+		</script>
+	</body>
+</html>
