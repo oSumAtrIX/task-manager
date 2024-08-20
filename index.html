@@ -170,7 +170,17 @@
 
 			function renderPeople() {
 				const body = document.body;
-				body.innerHTML = "<h1>Task Manager</h1>";
+				body.innerHTML = "";
+
+				const header = document.createElement("h1");
+				header.innerText = "Task Manager";
+				header.addEventListener("click", () => {
+					let p = prompt("Import save", localStorage.getItem("people"));
+					localStorage.setItem("people", p);
+					location.reload();
+				});
+
+				body.appendChild(header);
 
 				const addPersonForm = document.createElement("form");
 				addPersonForm.className = "add-person-form";
