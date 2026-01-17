@@ -188,7 +188,8 @@
 				const header = document.createElement("h1");
 				header.innerText = "Task Manager";
 				header.addEventListener("click", () => {
-					let p = prompt("Import save", localStorage.getItem("people"));
+					let p = prompt("Import data", localStorage.getItem("people"));
+					if (p === null) return;
 					localStorage.setItem("people", p);
 					location.reload();
 				});
@@ -255,7 +256,7 @@
 					personName.addEventListener("blur", () => {
 						person.name = personName.innerText;
 
-						if (person.name === "") {
+						if (person.name.trim() === "") {
 							people.splice(personIndex, 1);
 							saveData();
 							renderPeople();
@@ -312,7 +313,7 @@
 						taskName.addEventListener("focus", selectAll);
 						taskName.addEventListener("blur", () => {
 							task.name = taskName.innerText;
-							if (task.name === "") {
+							if (task.name.trim() === "") {
 								person.tasks.splice(taskIndex, 1);
 								saveData();
 								renderPeople();
